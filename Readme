@@ -1,0 +1,31 @@
+label部分协议:
+    dc_* 标识dc，缺失情况下默认为dc_default，即所有dc_default视为同一个dc
+    rack_* 标识rack，缺失情况下默认为rack_default，即在同一个dc的所有rack_default视为同一个rack
+
+Strategy:
+    ReplicaNum: 副本数
+    MaxDiffDC: 均衡情况下，包含最多副本的DC与包含最少副本的DC之间副本数的最大差值
+    MaxDiffRack: 均衡情况下，同一个DC内，包含最多副本的rack与包含最少副本的rack之间副本数的最大差值
+
+算法流程
+    1、首先构造dcMap，其中每一项表示一个dc的信息:
+        //记录region一个dc内的分布情况
+        type DC struct {
+            //该region在dc内的副本数
+            ReplicaNum int
+            //记录每一个rack内的副本数
+            Distribution map[string]*StoreReplica
+        }
+        //记录每一个rack内的副本数
+        type StoreReplica struct {
+        	replicas int
+        	storeId int
+        }
+    2、根据传入的region信息填充dcMap
+    3、均衡副本在DC之间的分布，包括删除冗余副本和DC之间移动副本
+    4、均衡副本在DC内部，rack之间的分布
+
+测试用例
+    1、1dc、2dc、3dc，以及3副本、5副本的情况
+    2、标签缺失、引入default
+    3、副本缺失/冗余
